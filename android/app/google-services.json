@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "709942973985",
+    "firebase_url": "https://cabrider-54a2f-default-rtdb.firebaseio.com",
+    "project_id": "cabrider-54a2f",
+    "storage_bucket": "cabrider-54a2f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709942973985:android:1cc4c44a10a62e7eb33560",
+        "android_client_info": {
+          "package_name": "com.example.cab_rider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "709942973985-1oa8i8kfiqodga3sjknstotnaut414ul.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHeaBTio-AeysW6em7vfoiMR6qWBTJOBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "709942973985-1oa8i8kfiqodga3sjknstotnaut414ul.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
