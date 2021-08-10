@@ -17,18 +17,16 @@ import 'package:cab_rider/widgets/BrandDivider.dart';
 import 'package:cab_rider/widgets/CollectPaymentDialog.dart';
 import 'package:cab_rider/widgets/NoDriverDialog.dart';
 import 'package:cab_rider/widgets/ProgressDialog.dart';
-import 'package:cab_rider/widgets/TaxiButton.dart';
 import 'package:cab_rider/widgets/rideVariables.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class MainPage extends StatefulWidget {
   static String id = 'Main_page';
@@ -103,57 +101,65 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   }
 
   void setUpPositionLocator() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.bestForNavigation);
+
+    currentPosition = position;
+    myPosition = position;
+
+    LatLng pos = LatLng(position.latitude, position.longitude);
+    CameraPosition cp = CameraPosition(
+      target: pos,
+      zoom: 15,
+    );
+    mapController!.animateCamera(CameraUpdate.newCameraPosition(cp));
+
+    startGeofireListener();
+  }
+
+  void getLocationUpdates(status) {
+    if (status != 'ontrip') {
+      return;
+    }
+    LatLng oldPosition = LatLng(0, 0);
     ridePositionStream = Geolocator.getPositionStream(
             desiredAccuracy: LocationAccuracy.bestForNavigation)
         .listen((Position position) {
       currentPosition = position;
       myPosition = position;
 
-      LatLng pos = LatLng(position.latitude, position.longitude);
-      CameraPosition cp = CameraPosition(
-        target: pos,
-        zoom: 15,
-      );
-      mapController!.animateCamera(CameraUpdate.newCameraPosition(cp));
+      LatLng pos = LatLng(myPosition!.latitude, myPosition!.longitude);
 
-      startGeofireListener();
+      var rotation = MapKitHelper.getMarkerRotation(oldPosition.latitude,
+          oldPosition.longitude, pos.latitude, pos.longitude);
+
+      Marker movingMarker = Marker(
+          markerId: MarkerId('moving'),
+          position: pos,
+          icon: nearbyIcon!,
+          rotation: rotation,
+          infoWindow: InfoWindow(title: 'Current Location'));
+
+      setState(() {
+        CameraPosition cp = CameraPosition(target: pos, zoom: 17);
+
+        mapController!.animateCamera(CameraUpdate.newCameraPosition(cp));
+
+        _Markers.remove((marker) => marker.markerId.value == 'moving');
+
+        _Markers.add(movingMarker);
+      });
+
+      oldPosition = pos;
+
+      //updateTripDetails();
+
+      Map locationMap = {
+        'latitude': myPosition!.latitude.toString(),
+        'longitude': myPosition!.latitude.toString(),
+      };
+      rideRef!.child('user_location').set(locationMap);
     });
-  }
-
-  void getLocationUpdates() {
-    LatLng oldPosition = LatLng(0, 0);
-
-    LatLng pos = LatLng(myPosition!.latitude, myPosition!.longitude);
-
-    var rotation = MapKitHelper.getMarkerRotation(oldPosition.latitude,
-        oldPosition.longitude, pos.latitude, pos.longitude);
-
-    Marker movingMarker = Marker(
-        markerId: MarkerId('moving'),
-        position: pos,
-        icon: nearbyIcon!,
-        rotation: rotation,
-        infoWindow: InfoWindow(title: 'Current Location'));
-
-    setState(() {
-      CameraPosition cp = CameraPosition(target: pos, zoom: 17);
-
-      mapController!.animateCamera(CameraUpdate.newCameraPosition(cp));
-
-      _Markers.remove((marker) => marker.markerId.value == 'moving');
-
-      _Markers.add(movingMarker);
-    });
-
-    oldPosition = pos;
-
-    //updateTripDetails();
-
-    Map locationMap = {
-      'latitude': myPosition!.latitude.toString(),
-      'longitude': myPosition!.latitude.toString(),
-    };
-    rideRef!.child('user_location').set(locationMap);
   }
 
   void showDetailSheet() async {
@@ -1162,6 +1168,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           updateToPickup(driverLocation);
         } else if (status == 'ontrip') {
           updateToDestination(driverLocation);
+          getLocationUpdates(status);
         } else if (status == 'arrived') {
           setState(() {
             tripStatusDisplay = 'Driver has arrived';
@@ -1177,7 +1184,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         showTripSheet();
         Geofire.stopListener();
         removeGeofireMarkers();
-        getLocationUpdates();
       }
 
       if (status == 'ended') {
@@ -1245,8 +1251,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
       var thisDetails = await HelperMethods.getDirectionDetails(
           driverLocation, destinationLatLng);
+      print(thisDetails!.durationText);
 
-      if (thisDetails == null) {
+      if (thisDetails.durationText == null) {
         return;
       }
 

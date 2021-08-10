@@ -34,7 +34,7 @@ class CollectPayment extends StatelessWidget {
               height: 16.0,
             ),
             Text(
-              '\$$fares',
+              '\u{20B9}$fares',
               style: TextStyle(fontFamily: 'Brand-Bold', fontSize: 50),
             ),
             SizedBox(
