@@ -47,7 +47,7 @@ class PredictionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return FlatButton(
+    return TextButton(
       onPressed: () {
         getPlaceDetails(prediction!.placeId!, context);
       },
@@ -69,14 +69,14 @@ class PredictionTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          prediction!.mainText!,
+                          prediction!.mainText ?? '',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: TextStyle(fontSize: 16),
                         ),
                         SizedBox(height: 2),
                         Text(
-                          prediction!.secondaryText!,
+                          prediction!.secondaryText ?? '',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: TextStyle(

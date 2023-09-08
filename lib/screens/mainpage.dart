@@ -68,7 +68,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   DatabaseReference? rideRef;
 
-  StreamSubscription<Event>? rideSubscrption;
+  StreamSubscription? rideSubscrption;
 
   List<NearbyDriver>? availableDrivers;
 
@@ -123,7 +123,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     }
     LatLng oldPosition = LatLng(0, 0);
     ridePositionStream = Geolocator.getPositionStream(
-            desiredAccuracy: LocationAccuracy.bestForNavigation)
+            locationSettings:
+                LocationSettings(accuracy: LocationAccuracy.bestForNavigation))
         .listen((Position position) {
       currentPosition = position;
       myPosition = position;
@@ -344,7 +345,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             right: 0,
             bottom: 0,
             child: AnimatedSize(
-              vsync: this,
               duration: Duration(milliseconds: 150),
               curve: Curves.easeIn,
               child: Container(
@@ -500,7 +500,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             right: 0,
             bottom: 0,
             child: AnimatedSize(
-              vsync: this,
               duration: Duration(
                 milliseconds: 150,
               ),
@@ -638,7 +637,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             right: 0,
             bottom: 0,
             child: AnimatedSize(
-              vsync: this,
               duration: Duration(
                 milliseconds: 150,
               ),
@@ -727,7 +725,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             right: 0,
             bottom: 0,
             child: AnimatedSize(
-              vsync: this,
               duration: new Duration(milliseconds: 150),
               curve: Curves.easeIn,
               child: Container(
@@ -1130,37 +1127,38 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
     rideSubscrption = rideRef!.onValue.listen((event) async {
       //check for null request
+      var data = event.snapshot.value as Map<dynamic, dynamic>?;
       if (event.snapshot.value == null) {
         return;
       }
 
       //get car details
-      if (event.snapshot.value['car_details'] != null) {
+      if (data!['car_details'] != null) {
         setState(() {
-          driverCarDetails = event.snapshot.value['car_details'].toString();
+          driverCarDetails = data['car_details'].toString();
         });
       }
 
       //get driver name
-      if (event.snapshot.value['driver_name'] != null) {
+      if (data['driver_name'] != null) {
         setState(() {
-          driverFullName = event.snapshot.value['driver_name'].toString();
+          driverFullName = data['driver_name'].toString();
         });
       }
 
       //get driver phone number
-      if (event.snapshot.value['driver_phone'] != null) {
+      if (data['driver_phone'] != null) {
         setState(() {
-          driverPhoneNumber = event.snapshot.value['driver_phone'].toString();
+          driverPhoneNumber = data['driver_phone'].toString();
         });
       }
 
       //get and use driver's location updates
-      if (event.snapshot.value['driver_location'] != null) {
-        double driverLat = double.parse(
-            event.snapshot.value['driver_location']['latitude'].toString());
-        double driverLng = double.parse(
-            event.snapshot.value['driver_location']['longitude'].toString());
+      if (data['driver_location'] != null) {
+        double driverLat =
+            double.parse(data['driver_location']['latitude'].toString());
+        double driverLng =
+            double.parse(data['driver_location']['longitude'].toString());
 
         LatLng driverLocation = LatLng(driverLat, driverLng);
 
@@ -1176,8 +1174,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         }
       }
 
-      if (event.snapshot.value['status'] != null) {
-        status = event.snapshot.value['status'].toString();
+      if (data['status'] != null) {
+        status = data['status'].toString();
       }
 
       if (status == 'accepted') {
@@ -1187,8 +1185,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       }
 
       if (status == 'ended') {
-        if (event.snapshot.value['fares'] != null) {
-          int fares = int.parse(event.snapshot.value['fares'].toString());
+        if (data['fares'] != null) {
+          int fares = int.parse(data['fares'].toString());
 
           var response = await showDialog(
             barrierDismissible: false,
@@ -1335,12 +1333,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         .reference()
         .child('drivers/${driver.key}/token');
 
-    tokenRef.once().then((DataSnapshot snapshot) {
+    tokenRef.once().then((data) {
+      var snapshot = data.snapshot;
       if (snapshot.value != null) {
         String token = snapshot.value.toString();
 
         //send notification to the selected driver
-        HelperMethods.sendNotification(token, context, rideRef!.key);
+        HelperMethods.sendNotification(token, context, rideRef!.key!);
       } else {
         return;
       }

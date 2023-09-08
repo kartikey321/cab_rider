@@ -61,6 +61,7 @@ class _SearchPageState extends State<SearchPage> {
     String address = Provider.of<AppData>(context).pickupAddress!.placeName!;
     pickupController.text = address;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           Container(

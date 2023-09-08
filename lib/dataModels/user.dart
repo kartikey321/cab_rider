@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 
 class UserData {
@@ -15,8 +16,11 @@ class UserData {
 
   UserData.fromSnapshot(DataSnapshot snapshot) {
     id = snapshot.key;
-    phone = snapshot.value['phone'];
-    email = snapshot.value['email'];
-    fullname = snapshot.value['fullName'];
+
+    final data = snapshot.value as Map<dynamic, dynamic>?;
+
+    phone = data?['phone'] ?? '';
+    email = data?['email'] ?? '';
+    fullname = data?['fullname'] ?? '';
   }
 }

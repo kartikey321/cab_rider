@@ -17,10 +17,10 @@ class HelperMethods {
     currentFirebaseUser = FirebaseAuth.instance.currentUser!;
     String userid = currentFirebaseUser!.uid;
     DatabaseReference userRef =
-        FirebaseDatabase.instance.reference().child('users/$userid');
+        FirebaseDatabase.instance.ref().child('users/$userid');
 
-    userRef.once().then((DataSnapshot snapshot) {
-      if (snapshot.value != null) {
+    userRef.get().then((snapshot) {
+      if (snapshot != null) {
         currentUserInfo = UserData.fromSnapshot(snapshot);
         print('My name is ${currentUserInfo!.fullname}');
       }

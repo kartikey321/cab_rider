@@ -35,7 +35,7 @@ class _RegisterationPageState extends State<RegisterationPage> {
         style: TextStyle(fontSize: 15),
       ),
     );
-    scaffoldKey.currentState!.showSnackBar(snackBar);
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   registerUser() async {
